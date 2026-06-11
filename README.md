@@ -29,7 +29,7 @@ Produces root cause outputs
 
 If you don’t want to use Nagios, this script simulates SNMP-like alarms and sends them to Kafka.
 
-🗂 Project Structure
+ Project Structure
 network-monitor/
 │
 ├── event_handler.py       # Script executed by Nagios on alarm
@@ -39,47 +39,230 @@ network-monitor/
 ├── localhost.cfg          # Nagios host/service definitions
 └── README.md
 
-🛠 Technologies Used
+ Technologies Used
 Component	Purpose
 Nagios	Detects issues and sends alarms
 Kafka	Message broker that stores and forwards alarms
 Zookeeper	Required service for running Kafka
 Python	Event handler, Kafka producer, and RCA engine
 Docker	Runs Kafka environment
-🧰 Installation & Setup
-1️⃣ Start Docker Desktop
+
+
+# How to Run the Project
+
+## Step 1: Start Docker Desktop
 
 Ensure Docker Desktop is running.
 
-2️⃣ Start Kafka & Zookeeper inside the container
+---
 
-If your Docker container is named kafka-nagios, run:
+## Step 2: Start ZooKeeper
 
-docker start kafka-nagios
-docker exec -it kafka-nagios bash
+Open Terminal and run:
 
+```bash
+docker start zookeeper
+```
 
-Inside the container:
+Verify:
 
-zookeeper-server-start.sh config/zookeeper.properties &
-kafka-server-start.sh config/server.properties &
+```bash
+docker ps
+```
 
-3️⃣ Install Python dependencies (on your Mac)
-pip3 install -r requirements.txt
+You should see:
 
-▶️ Run the RCA Engine
+```bash
+zookeeper   Up
+```
 
-Open a new terminal (Mac):
+---
 
+## Step 3: Start Kafka
+
+```bash
+docker start kafka
+```
+
+Verify:
+
+```bash
+docker ps
+```
+
+You should see:
+
+```bash
+kafka   Up
+```
+
+---
+
+## Step 4: Start Nagios
+
+```bash
+docker start nagios
+```
+
+Verify:
+
+```bash
+docker ps
+```
+
+You should see:
+
+```bash
+nagios   Up
+```
+
+Nagios Dashboard:
+
+```
+http://localhost:8081
+```
+
+---
+
+## Step 5: Open Project Folder
+
+```bash
+cd ~/rca_project
+```
+
+---
+
+## Step 6: Activate Virtual Environment
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+## Step 7: Install Dependencies (First Time Only)
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Step 8: Initialize Knowledge Base (First Time Only)
+
+```bash
+python3 kb_init.py
+```
+
+This creates the SQLite database:
+
+```
+problems.db
+```
+
+with default solutions.
+
+---
+
+## Step 9: Start RCA Engine
+
+Open a new terminal and run:
+
+```bash
+cd ~/rca_project
+source venv/bin/activate
 python3 rca.py
-python3 nms_monitor.py
+```
 
-Expected output format:
+Expected output:
 
+```bash
+RCA with Knowledge Base — starting...
 Listening for alarms...
-Received Alarm: ALERT: Server1 Disk FULL
-Root Cause: Disk issue detected.
+```
 
+Keep this terminal running.
 
+---
+
+## Step 10: Generate Test Alarms
+
+Open another terminal and run:
+
+```bash
+cd ~/rca_project
+source venv/bin/activate
+python3 nms_monitor.py
+```
+
+This simulates alarms and sends them to Kafka.
+
+---
+
+## 🖥 Sample Output
+
+### Example 1
+
+```
+Received Alarm:
+ALERT: Server1 Disk FULL
+
+Root Cause:
+Disk issue detected.
+
+Suggested Solution:
+Delete unnecessary files.
+Clean logs.
+Extend disk partition.
+```
+
+---
+
+### Example 2
+
+```
+Received Alarm:
+ALERT: CPU Usage High
+
+Root Cause:
+CPU overload.
+
+Suggested Solution:
+Identify high CPU processes.
+Restart the affected service.
+Scale server resources.
+```
+
+---
+
+### Example 3
+
+Unknown Problem:
+
+```
+Received Alarm:
+ALERT: Authentication Failure
+
+No solution found.
+
+Enter solution:
+```
+
+User enters:
+
+```
+Check LDAP server.
+Validate credentials.
+Restart authentication service.
+```
+
+Output:
+
+```
+Solution saved successfully.
+Knowledge Base updated.
+```
+
+---
 
 
